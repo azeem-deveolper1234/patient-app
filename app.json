@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "patient-app",
+    "name": "City Medical Patient",
     "slug": "patient-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -20,6 +20,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "usesCleartextTraffic": true,
+      "softwareKeyboardLayoutMode": "resize",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
