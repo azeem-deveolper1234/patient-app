@@ -14,8 +14,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { usePatientPortal } from '../../context/PatientPortalContext';
 import { colors } from '../../theme/colors';
+import { shadows } from '../../theme/shadows';
 import type { PaymentMethod } from '../../types';
 import { dateFromLocalInput, localDateInputValue } from '../../utils/dateInput';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function BookTab() {
   const { joinForm, setJoinForm, doctors, handleJoinQueue, loading, error } = usePatientPortal();
@@ -176,15 +178,21 @@ export default function BookTab() {
         ) : null}
 
         <Pressable
-          style={[styles.submit, (!joinForm.serviceName || loading) && styles.submitDis]}
           onPress={() => void handleJoinQueue()}
           disabled={loading || !joinForm.serviceName}
         >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.submitTxt}>Confirm & Book Appointment</Text>
-          )}
+          <LinearGradient
+            colors={[colors.primary500, colors.primary600]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.submit, (!joinForm.serviceName || loading) && styles.submitDis]}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.submitTxt}>Confirm & Book Appointment</Text>
+            )}
+          </LinearGradient>
         </Pressable>
       </View>
 
@@ -224,9 +232,8 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
     borderRadius: 24,
-    padding: 22,
-    borderWidth: 1,
-    borderColor: colors.slate200,
+    padding: 24,
+    ...shadows.soft,
   },
   cardHead: { flexDirection: 'row', gap: 14, marginBottom: 22 },
   iconCircle: {
@@ -247,9 +254,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.slate50,
     borderWidth: 1,
     borderColor: colors.slate200,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
   selectTxt: { fontSize: 15, fontWeight: '600', color: colors.slate700, flex: 1, paddingRight: 8 },
   selectPh: { fontSize: 15, color: colors.slate400, flex: 1 },
@@ -361,11 +368,11 @@ const styles = StyleSheet.create({
   },
   errTxt: { flex: 1, color: colors.red700, fontSize: 13, fontWeight: '500' },
   submit: {
-    marginTop: 18,
-    backgroundColor: colors.primary600,
-    paddingVertical: 16,
-    borderRadius: 14,
+    marginTop: 22,
+    paddingVertical: 18,
+    borderRadius: 16,
     alignItems: 'center',
+    ...shadows.glow,
   },
   submitDis: { opacity: 0.5 },
   submitTxt: { color: '#fff', fontSize: 15, fontWeight: '700' },

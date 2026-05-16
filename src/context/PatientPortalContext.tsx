@@ -26,6 +26,11 @@ import type {
   ReceiptData,
 } from '../types';
 import { localDateInputValue } from '../utils/dateInput';
+import { socketService } from '../api/socket';
+import {
+  registerForPushNotificationsAsync,
+  scheduleQueueNotification,
+} from '../utils/notifications';
 
 const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   easypaisa: 'Easypaisa',
@@ -102,6 +107,28 @@ export function PatientPortalProvider({ children }: { children: React.ReactNode 
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   const pendingBookingRef = useRef<JoinFormState | null>(null);
   const gatewayTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const prevPeopleAheadRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    registerForPushNotificationsAsync();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      socketService.connect();
+      socketService.on('queueUpdated', () => {
+        void fetchQueueStatus();
+      });
+      socketService.on('queueCompleted', () => {
+        void fetchQueueStatus();
+      });
+    } else {
+      socketService.disconnect();
+    }
+    return () => {
+      socketService.disconnect();
+    };
+  }, [user]);
 
   const clearGatewayTimers = useCallback(() => {
     gatewayTimersRef.current.forEach((id) => clearTimeout(id));
@@ -131,10 +158,33 @@ export function PatientPortalProvider({ children }: { children: React.ReactNode 
   const fetchQueueStatus = useCallback(async () => {
     try {
       const res = await getQueueStatus();
-      setQueueStatus(res.data as QueueStatus);
+      const newStatus = res.data as QueueStatus;
+      
+      if (
+        newStatus &&
+        typeof newStatus.peopleAhead === 'number' &&
+        prevPeopleAheadRef.current !== null &&
+        prevPeopleAheadRef.current > newStatus.peopleAhead
+      ) {
+        if (newStatus.peopleAhead <= 4 && newStatus.peopleAhead >= 0) {
+          if (prevPeopleAheadRef.current > 4 || newStatus.peopleAhead === 0) {
+            scheduleQueueNotification(
+              newStatus.yourToken,
+              newStatus.peopleAhead,
+              newStatus.estimatedTime
+            );
+          }
+        }
+      }
+      
+      if (newStatus) {
+        prevPeopleAheadRef.current = newStatus.peopleAhead;
+      }
+      setQueueStatus(newStatus);
     } catch (e: unknown) {
       if ((e as { response?: { status?: number } }).response?.status === 404) {
         setQueueStatus(null);
+        prevPeopleAheadRef.current = null;
       }
     }
   }, []);

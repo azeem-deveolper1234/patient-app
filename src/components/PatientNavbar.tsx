@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { CLINIC_BRAND } from '../constants/app';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme/colors';
+import { shadows } from '../theme/shadows';
 
 export default function PatientNavbar() {
   const { user, logout } = useAuth();
@@ -44,10 +45,10 @@ export default function PatientNavbar() {
 const styles = StyleSheet.create({
   nav: {
     backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.slate200,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 14,
+    ...shadows.soft,
+    zIndex: 10,
   },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
@@ -57,6 +58,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.soft,
   },
   title: { fontSize: 18, fontWeight: '700', color: colors.slate800, letterSpacing: -0.3 },
   sub: {

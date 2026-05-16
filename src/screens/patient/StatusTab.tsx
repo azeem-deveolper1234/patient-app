@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { usePatientPortal } from '../../context/PatientPortalContext';
 import { colors } from '../../theme/colors';
+import { shadows } from '../../theme/shadows';
 
 export default function StatusTab() {
   const { queueStatus, fetchQueueStatus, handleCancelQueue, loading } = usePatientPortal();
@@ -116,9 +117,8 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
     borderRadius: 24,
-    padding: 22,
-    borderWidth: 1,
-    borderColor: colors.slate200,
+    padding: 24,
+    ...shadows.soft,
   },
   headRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22 },
   title: { fontSize: 22, fontWeight: '700', color: colors.slate800 },
@@ -138,8 +138,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.slate100,
+    ...shadows.soft,
   },
   boxPrimary: { backgroundColor: colors.primary50, borderColor: colors.primary100 },
   big: { fontSize: 44, fontWeight: '900', color: colors.slate800 },
@@ -151,17 +150,15 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.slate100,
+    ...shadows.soft,
   },
   mid: { fontSize: 22, fontWeight: '700', color: colors.slate700 },
   capSm: { fontSize: 10, fontWeight: '600', color: colors.slate500, textTransform: 'uppercase', marginTop: 4 },
   statusPanel: {
     backgroundColor: colors.slate50,
     borderRadius: 16,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: colors.slate100,
+    padding: 20,
+    ...shadows.soft,
   },
   statusRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   statusLbl: { fontSize: 15, fontWeight: '600', color: colors.slate600 },

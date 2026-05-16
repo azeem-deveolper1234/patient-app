@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { usePatientPortal } from '../../context/PatientPortalContext';
 import { colors } from '../../theme/colors';
+import { shadows } from '../../theme/shadows';
 import type { PatientTabParamList } from '../../navigation/types';
 
 export default function HomeTab() {
@@ -143,6 +144,7 @@ const styles = StyleSheet.create({
     padding: 24,
     marginBottom: 24,
     overflow: 'hidden',
+    ...shadows.glow,
   },
   watermark: { position: 'absolute', right: -20, top: 8 },
   gradInner: { gap: 20 },
@@ -201,9 +203,8 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 28,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.slate200,
     marginBottom: 24,
+    ...shadows.soft,
   },
   emptyIcon: {
     width: 80,
@@ -239,8 +240,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderRadius: 16,
     padding: 18,
-    borderWidth: 1,
-    borderColor: colors.slate200,
+    ...shadows.soft,
   },
   docRow: { flexDirection: 'row', gap: 14 },
   docAvatar: {

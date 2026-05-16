@@ -32,13 +32,12 @@ export default function PatientMaterialTabs() {
         tabBarShowIcon: true,
         tabBarActiveTintColor: colors.primary600,
         tabBarInactiveTintColor: colors.slate500,
-        tabBarIndicatorStyle: { backgroundColor: colors.primary600, height: 2 },
+        tabBarIndicatorStyle: { backgroundColor: colors.primary600, height: 3, borderTopLeftRadius: 3, borderTopRightRadius: 3 },
         tabBarStyle: {
           backgroundColor: colors.white,
           elevation: 0,
           shadowOpacity: 0,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.slate200,
+          paddingTop: 4,
         },
         tabBarLabelStyle: {
           fontSize: 12,
