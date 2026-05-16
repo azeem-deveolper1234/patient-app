@@ -46,6 +46,8 @@ type HistoryRow = {
   createdAt?: string;
 };
 
+export type InAppNotificationData = { title: string; body: string } | null;
+
 type PatientPortalContextValue = {
   userName: string;
   doctors: Doctor[];
@@ -76,6 +78,8 @@ type PatientPortalContextValue = {
   handleGatewayNext: () => void;
   gatewayBackToPhone: () => void;
   dismissToast: () => void;
+  inAppNotification: InAppNotificationData;
+  setInAppNotification: React.Dispatch<React.SetStateAction<InAppNotificationData>>;
 };
 
 const PatientPortalContext = createContext<PatientPortalContextValue | null>(null);
@@ -105,6 +109,7 @@ export function PatientPortalProvider({ children }: { children: React.ReactNode 
   const [gatewayOtp, setGatewayOtp] = useState('');
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
+  const [inAppNotification, setInAppNotification] = useState<InAppNotificationData>(null);
   const pendingBookingRef = useRef<JoinFormState | null>(null);
   const gatewayTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const prevPeopleAheadRef = useRef<number | null>(null);
@@ -168,11 +173,13 @@ export function PatientPortalProvider({ children }: { children: React.ReactNode 
       ) {
         if (newStatus.peopleAhead <= 4 && newStatus.peopleAhead >= 0) {
           if (prevPeopleAheadRef.current > 4 || newStatus.peopleAhead === 0) {
-            scheduleQueueNotification(
-              newStatus.yourToken,
-              newStatus.peopleAhead,
-              newStatus.estimatedTime
-            );
+            setInAppNotification({
+              title: newStatus.peopleAhead === 0 ? "It's your turn!" : "Queue Update",
+              body: newStatus.peopleAhead === 0 
+                ? "Please proceed to the doctor's room now."
+                : `Only ${newStatus.peopleAhead} people ahead. Approx ${newStatus.estimatedTime} mins wait.`,
+            });
+            setTimeout(() => setInAppNotification(null), 8000);
           }
         }
       }
@@ -463,6 +470,8 @@ export function PatientPortalProvider({ children }: { children: React.ReactNode 
     handleGatewayNext,
     gatewayBackToPhone,
     dismissToast,
+    inAppNotification,
+    setInAppNotification,
   };
 
   return (

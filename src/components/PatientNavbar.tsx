@@ -1,18 +1,40 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CLINIC_BRAND } from '../constants/app';
 import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
+import { usePatientPortal } from '../context/PatientPortalContext';
 import { colors } from '../theme/colors';
 import { shadows } from '../theme/shadows';
 
 export default function PatientNavbar() {
   const { user, logout } = useAuth();
+  const { inAppNotification, setInAppNotification } = usePatientPortal();
   const insets = useSafeAreaInsets();
+  
+  const slideAnim = useRef(new Animated.Value(-150)).current;
+
+  useEffect(() => {
+    if (inAppNotification) {
+      Animated.spring(slideAnim, {
+        toValue: insets.top + 20,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(slideAnim, {
+        toValue: -150,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [inAppNotification, slideAnim, insets.top]);
+
   return (
-    <View style={[styles.nav, { paddingTop: Math.max(insets.top, 10) }]}>
+    <>
+      <View style={[styles.nav, { paddingTop: Math.max(insets.top, 10) }]}>
       <View style={styles.row}>
         <View style={styles.brandRow}>
           <LinearGradient
@@ -38,7 +60,20 @@ export default function PatientNavbar() {
           </Pressable>
         </View>
       </View>
-    </View>
+      
+      <Animated.View style={[styles.toast, { transform: [{ translateY: slideAnim }] }]} pointerEvents={inAppNotification ? 'auto' : 'none'}>
+        <View style={styles.toastInner}>
+          <Ionicons name="notifications" size={26} color={colors.white} />
+          <View style={styles.toastTextCont}>
+             <Text style={styles.toastTitle}>{inAppNotification?.title}</Text>
+             <Text style={styles.toastBody}>{inAppNotification?.body}</Text>
+          </View>
+          <Pressable onPress={() => setInAppNotification(null)} hitSlop={10} style={{ padding: 4 }}>
+             <Ionicons name="close" size={20} color={colors.white} />
+          </Pressable>
+        </View>
+      </Animated.View>
+    </>
   );
 }
 
@@ -84,4 +119,23 @@ const styles = StyleSheet.create({
   },
   userName: { fontSize: 12, fontWeight: '600', color: colors.slate600, maxWidth: 120 },
   logoutBtn: { padding: 6 },
+  toast: {
+    position: 'absolute',
+    top: 0,
+    left: 16,
+    right: 16,
+    zIndex: 100,
+    ...shadows.glow,
+  },
+  toastInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary600,
+    padding: 16,
+    borderRadius: 16,
+    gap: 12,
+  },
+  toastTextCont: { flex: 1 },
+  toastTitle: { color: colors.white, fontSize: 15, fontWeight: '700', marginBottom: 2 },
+  toastBody: { color: colors.primary100, fontSize: 13, lineHeight: 18 },
 });

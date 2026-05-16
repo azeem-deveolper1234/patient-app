@@ -78,7 +78,6 @@ export default function LoginScreen({ navigation }: Props) {
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      >
         <LinearGradient
           colors={[colors.slate50, colors.slate100]}
           style={styles.scrollBg}
