@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -30,6 +31,23 @@ export default function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, slideAnim]);
 
   const onSubmit = async () => {
     setError('');
@@ -72,7 +90,7 @@ export default function LoginScreen({ navigation }: Props) {
             showsVerticalScrollIndicator={false}
             removeClippedSubviews={Platform.OS === 'android'}
           >
-            <View style={styles.card}>
+            <Animated.View style={[styles.card, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
           <AuthHero
             icon="pulse"
             iconSize={32}
@@ -157,7 +175,7 @@ export default function LoginScreen({ navigation }: Props) {
               <Text style={styles.linkBold}>{STRINGS.auth.registerLink}</Text>
             </Pressable>
           </View>
-        </View>
+        </Animated.View>
           </ScrollView>
         </LinearGradient>
       </KeyboardAvoidingView>

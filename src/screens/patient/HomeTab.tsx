@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
+  Animated,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -19,9 +20,27 @@ export default function HomeTab() {
   const navigation = useNavigation<MaterialTopTabNavigationProp<PatientTabParamList>>();
   const { userName, queueStatus, doctors, handleCancelQueue, loading } = usePatientPortal();
   const firstName = userName.split(' ')[0] || userName;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, slideAnim]);
 
   return (
     <ScrollView style={styles.root} contentContainerStyle={styles.content}>
+      <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
       <View style={styles.head}>
         <Text style={styles.h2}>Good morning, {firstName}!</Text>
         <Text style={styles.muted}>Here is your health overview for today.</Text>
@@ -129,6 +148,7 @@ export default function HomeTab() {
           </View>
         ))}
       </View>
+      </Animated.View>
     </ScrollView>
   );
 }
