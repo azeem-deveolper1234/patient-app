@@ -75,14 +75,13 @@ export default function RegisterScreen({ navigation }: Props) {
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <LinearGradient
+        colors={[colors.slate50, colors.slate100]}
+        style={styles.scrollBg}
       >
-        <LinearGradient
-          colors={[colors.slate50, colors.slate100]}
-          style={styles.scrollBg}
-        >
-          <ScrollView
-            contentContainerStyle={styles.scroll}
-            keyboardShouldPersistTaps="handled"
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
             showsVerticalScrollIndicator={false}
             removeClippedSubviews={Platform.OS === 'android'}

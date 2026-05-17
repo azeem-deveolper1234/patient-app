@@ -5,7 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CLINIC_BRAND } from '../constants/app';
 import { useAuth } from '../context/AuthContext';
-import { useAuth } from '../context/AuthContext';
 import { usePatientPortal } from '../context/PatientPortalContext';
 import { colors } from '../theme/colors';
 import { shadows } from '../theme/shadows';
@@ -35,29 +34,30 @@ export default function PatientNavbar() {
   return (
     <>
       <View style={[styles.nav, { paddingTop: Math.max(insets.top, 10) }]}>
-      <View style={styles.row}>
-        <View style={styles.brandRow}>
-          <LinearGradient
-            colors={[colors.primary100, colors.primary50]}
-            style={styles.logo}
-          >
-            <Ionicons name="pulse" size={28} color={colors.primary600} />
-          </LinearGradient>
-          <View>
-            <Text style={styles.title}>{CLINIC_BRAND.shortName}</Text>
-            <Text style={styles.sub}>{CLINIC_BRAND.portalLabel}</Text>
+        <View style={styles.row}>
+          <View style={styles.brandRow}>
+            <LinearGradient
+              colors={[colors.primary100, colors.primary50]}
+              style={styles.logo}
+            >
+              <Ionicons name="pulse" size={28} color={colors.primary600} />
+            </LinearGradient>
+            <View>
+              <Text style={styles.title}>{CLINIC_BRAND.shortName}</Text>
+              <Text style={styles.sub}>{CLINIC_BRAND.portalLabel}</Text>
+            </View>
           </View>
-        </View>
-        <View style={styles.actions}>
-          <View style={styles.userPill}>
-            <Ionicons name="person" size={14} color={colors.primary600} />
-            <Text style={styles.userName} numberOfLines={1}>
-              {user?.name}
-            </Text>
+          <View style={styles.actions}>
+            <View style={styles.userPill}>
+              <Ionicons name="person" size={14} color={colors.primary600} />
+              <Text style={styles.userName} numberOfLines={1}>
+                {user?.name}
+              </Text>
+            </View>
+            <Pressable onPress={() => void logout()} hitSlop={12} style={styles.logoutBtn}>
+              <Ionicons name="log-out-outline" size={22} color={colors.slate500} />
+            </Pressable>
           </View>
-          <Pressable onPress={() => void logout()} hitSlop={12} style={styles.logoutBtn}>
-            <Ionicons name="log-out-outline" size={22} color={colors.slate500} />
-          </Pressable>
         </View>
       </View>
       
