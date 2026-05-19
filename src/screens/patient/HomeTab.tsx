@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Vibration,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { MaterialTopTabNavigationProp } from '@react-navigation/material-top-tabs';
@@ -37,292 +38,469 @@ export default function HomeTab() {
   // Gradient based on Proximity
   const getProximityGradient = (peopleAhead: number, status: string): [string, string] => {
     if (status === 'serving' || peopleAhead === 0) {
-      return ['#16a34a', '#15803d']; // Green
+      return ['#0d9488', '#0f766e']; // Dynamic Green/Teal (serving)
     }
     if (peopleAhead <= 2) {
-      return ['#dc2626', '#b91c1c']; // Red
+      return ['#e11d48', '#be123c']; // Glowing Rose/Red (urgent)
     }
     if (peopleAhead <= 5) {
-      return ['#ca8a04', '#a16207']; // Yellow
+      return ['#d97706', '#b45309']; // Warm Amber (medium wait)
     }
-    return [colors.primary600, colors.primary800]; // Blue
+    return ['#3b82f6', '#1d4ed8']; // Royal Blue (normal wait)
+  };
+
+  // Spec icon selector
+  const getSpecIcon = (spec: string): keyof typeof Ionicons.glyphMap => {
+    const clean = spec.toLowerCase();
+    if (clean.includes('heart') || clean.includes('cardio')) return 'heart-outline';
+    if (clean.includes('pediatric') || clean.includes('child')) return 'gift-outline';
+    if (clean.includes('dent')) return 'shield-checkmark-outline';
+    if (clean.includes('derm') || clean.includes('skin')) return 'sparkles-outline';
+    if (clean.includes('eye') || clean.includes('opthal')) return 'eye-outline';
+    if (clean.includes('physiotherapist') || clean.includes('therapy')) return 'body-outline';
+    return 'pulse-outline';
   };
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 500,
+        duration: 600,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 500,
+        duration: 600,
         useNativeDriver: true,
       }),
     ]).start();
   }, [fadeAnim, slideAnim]);
 
-  return (
-    <ScrollView style={styles.root} contentContainerStyle={styles.content}>
-      <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-      <View style={styles.head}>
-        <Text style={styles.h2}>Good morning, {firstName}!</Text>
-        <Text style={styles.muted}>Here is your health overview for today.</Text>
-      </View>
+  const onCancelPress = () => {
+    Vibration.vibrate(100);
+    handleCancelQueue();
+  };
 
-      {queueStatus ? (
-        <LinearGradient
-          colors={getProximityGradient(queueStatus.peopleAhead, queueStatus.status)}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.gradCard}
-        >
-          <View style={styles.watermark} pointerEvents="none">
-            <Ionicons name="pulse" size={180} color="rgba(255,255,255,0.08)" />
+  return (
+    <View style={styles.root}>
+      {/* Background Ambient Glows */}
+      <View style={styles.glowTop} pointerEvents="none" />
+      <View style={styles.glowBottom} pointerEvents="none" />
+
+      <ScrollView 
+        style={styles.flex} 
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+          
+          {/* Header Area */}
+          <View style={styles.head}>
+            <Text style={styles.greeting}>
+              Salaam, <Text style={styles.greetingHighlight}>{firstName}!</Text>
+            </Text>
+            <Text style={styles.muted}>Aapki sehat hamari sabse barhi tarjeeh hai.</Text>
           </View>
-          <View style={styles.gradInner}>
-            <View>
-              <View
-                style={[
-                  styles.badge,
-                  queueStatus.status === 'serving' ? styles.badgeLight : styles.badgeDim,
-                ]}
+
+          {/* Active Queue Ticket (Boarding Pass design) */}
+          {queueStatus ? (
+            <View style={styles.ticketContainer}>
+              <LinearGradient
+                colors={getProximityGradient(queueStatus.peopleAhead, queueStatus.status)}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.gradCard}
               >
-                <Ionicons
-                  name={queueStatus.status === 'serving' ? 'checkmark-circle' : 'time'}
-                  size={14}
-                  color={queueStatus.status === 'serving' ? colors.green600 : '#fff'}
-                />
-                <Text
-                  style={[
-                    styles.badgeText,
-                    queueStatus.status === 'serving' && { color: colors.green600 },
+                {/* Background Watermark Symbol */}
+                <View style={styles.watermark} pointerEvents="none">
+                  <Ionicons name="pulse" size={170} color="rgba(255,255,255,0.06)" />
+                </View>
+
+                {/* Ticket Top Half */}
+                <View style={styles.ticketTop}>
+                  <View style={styles.ticketBadgeRow}>
+                    <View style={styles.liveBadge}>
+                      <View style={styles.livePulse} />
+                      <Text style={styles.liveText}>LIVE PASS</Text>
+                    </View>
+                    <Text style={styles.specialtyText}>
+                      {(queueStatus.serviceName || '').toUpperCase()}
+                    </Text>
+                  </View>
+
+                  <View style={styles.ticketMainRow}>
+                    <View>
+                      <Text style={styles.tokenLabel}>TOKEN NUMBER</Text>
+                      <Text style={styles.tokenHuge}>{queueStatus.yourToken}</Text>
+                    </View>
+                    <View style={styles.statusBox}>
+                      <Ionicons
+                        name={queueStatus.status === 'serving' ? 'checkmark-circle' : 'time-outline'}
+                        size={20}
+                        color="#ffffff"
+                      />
+                      <Text style={styles.statusText}>
+                        {queueStatus.status === 'serving' ? 'SERVING NOW' : 'WAITING'}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Ticket Punch/Dash Line Separator */}
+                <View style={styles.ticketSeparatorContainer} pointerEvents="none">
+                  <View style={styles.leftPunch} />
+                  <View style={styles.dashLine} />
+                  <View style={styles.rightPunch} />
+                </View>
+
+                {/* Ticket Bottom Half */}
+                <View style={styles.ticketBottom}>
+                  <View style={styles.statRow}>
+                    <View style={styles.statBox}>
+                      <Text style={styles.statNum}>{queueStatus.peopleAhead}</Text>
+                      <Text style={styles.statLbl}>Patients Ahead</Text>
+                    </View>
+                    <View style={styles.statBox}>
+                      <Text style={styles.statNum}>{queueStatus.estimatedTime}m</Text>
+                      <Text style={styles.statLbl}>Wait Time</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.arrivalRow}>
+                    <Ionicons name="time" size={18} color="rgba(255,255,255,0.9)" />
+                    <Text style={styles.arrivalText}>
+                      Expected Arrival: {getExpectedArrivalTime(queueStatus.estimatedTime)}
+                    </Text>
+                  </View>
+
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.cancelGrad,
+                      pressed && styles.cancelGradPressed
+                    ]}
+                    onPress={onCancelPress}
+                    disabled={loading}
+                  >
+                    <Text style={styles.cancelGradText}>Cancel Appointment</Text>
+                  </Pressable>
+                </View>
+              </LinearGradient>
+            </View>
+          ) : (
+            /* Empty Queue - CTA Card */
+            <View style={styles.emptyCard}>
+              <LinearGradient
+                colors={['#1e293b', '#0f172a']}
+                style={styles.emptyInner}
+              >
+                <View style={styles.emptyIconContainer}>
+                  <Ionicons name="calendar-outline" size={32} color={colors.primary500} />
+                </View>
+                <Text style={styles.emptyTitle}>No Active Appointment</Text>
+                <Text style={styles.emptySub}>
+                  Koi active token nahi mila. Doctor se consult karne ke liye naya appointment book karein.
+                </Text>
+                
+                <Pressable
+                  onPress={() => {
+                    Vibration.vibrate(40);
+                    navigation.jumpTo('Book');
+                  }}
+                  style={({ pressed }) => [
+                    styles.ctaBtn,
+                    pressed && styles.ctaBtnPressed
                   ]}
                 >
-                  {queueStatus.status === 'serving' ? 'Currently Serving You' : 'Waiting in Queue'}
-                </Text>
-              </View>
-              <Text style={styles.tokenHuge}>Token #{queueStatus.yourToken}</Text>
-              <Text style={styles.drSub}>
-                <Ionicons name="person" size={14} color={colors.primary100} /> Dr.{' '}
-                {queueStatus.serviceName}
-              </Text>
+                  <LinearGradient
+                    colors={[colors.primary500, '#0d9488']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.ctaGrad}
+                  >
+                    <Text style={styles.ctaText}>Book Appointment Now</Text>
+                    <Ionicons name="arrow-forward" size={18} color="#fff" />
+                  </LinearGradient>
+                </Pressable>
+              </LinearGradient>
             </View>
-            <View style={styles.statRow}>
-              <View style={styles.statBox}>
-                <Text style={styles.statNum}>{queueStatus.peopleAhead}</Text>
-                <Text style={styles.statLbl}>Ahead</Text>
-              </View>
-              <View style={styles.statBox}>
-                <Text style={styles.statNum}>{queueStatus.estimatedTime}m</Text>
-                <Text style={styles.statLbl}>Wait Time</Text>
-              </View>
-            </View>
+          )}
 
-            {/* Expected Arrival time */}
-            <View style={styles.arrivalRow}>
-              <Ionicons name="time" size={18} color="rgba(255,255,255,0.8)" />
-              <Text style={styles.arrivalText}>
-                Expected Arrival: {getExpectedArrivalTime(queueStatus.estimatedTime)}
-              </Text>
-            </View>
+          {/* Specialists Header */}
+          <Text style={styles.sectionTitle}>Our Panel Specialists</Text>
+          
+          {/* Specialists Grid */}
+          <View style={styles.docGrid}>
+            {doctors.map((doc, idx) => (
+              <Animated.View key={doc._id} style={styles.docCardContainer}>
+                <LinearGradient
+                  colors={['#111827', '#0b0f19']}
+                  style={styles.docCard}
+                >
+                  <View style={styles.docRow}>
+                    <LinearGradient
+                      colors={[colors.primary900, '#115e59']}
+                      style={styles.docAvatar}
+                    >
+                      <Ionicons name={getSpecIcon(doc.specialization)} size={24} color={colors.primary500} />
+                    </LinearGradient>
+                    
+                    <View style={styles.docInfo}>
+                      <Text style={styles.docName}>Dr. {doc.name}</Text>
+                      <Text style={styles.docSpec}>{doc.specialization.toUpperCase()}</Text>
+                      
+                      <View style={styles.docMetaRow}>
+                        <View style={styles.docMetaBadge}>
+                          <Ionicons name="time-outline" size={12} color={colors.primary100} />
+                          <Text style={styles.docMetaText}>{doc.slotDuration} Mins</Text>
+                        </View>
+                        <View style={styles.docMetaBadge}>
+                          <Ionicons name="wallet-outline" size={12} color="#ccfbf1" style={{ marginRight: 2 }} />
+                          <Text style={styles.docMetaText}>PKR {doc.consultationFee}</Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </LinearGradient>
+              </Animated.View>
+            ))}
           </View>
-          <View style={styles.gradFooter}>
-            <Pressable
-              style={styles.cancelGrad}
-              onPress={handleCancelQueue}
-              disabled={loading}
-            >
-              <Text style={styles.cancelGradText}>Cancel Queue</Text>
-            </Pressable>
-          </View>
-        </LinearGradient>
-      ) : (
-        <View style={styles.emptyCard}>
-          <View style={styles.emptyIcon}>
-            <Ionicons name="calendar" size={40} color={colors.slate300} />
-          </View>
-          <Text style={styles.emptyTitle}>No active appointments</Text>
-          <Text style={styles.emptySub}>
-            {"You're all caught up. Book an appointment if you need to consult a doctor."}
-          </Text>
-          <Pressable
-            style={styles.cta}
-            onPress={() => navigation.jumpTo('Book')}
-          >
-            <Text style={styles.ctaText}>Book Appointment</Text>
-            <Ionicons name="chevron-forward" size={18} color="#fff" />
-          </Pressable>
-        </View>
-      )}
 
-      <Text style={styles.sectionTitle}>Our Specialists</Text>
-      <View style={styles.docGrid}>
-        {doctors.map((doc) => (
-          <View key={doc._id} style={styles.docCard}>
-            <View style={styles.docRow}>
-              <View style={styles.docAvatar}>
-                <Ionicons name="person" size={28} color={colors.secondary600} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.docName}>Dr. {doc.name}</Text>
-                <Text style={styles.docSpec}>{doc.specialization}</Text>
-                <View style={styles.docMeta}>
-                  <Ionicons name="time-outline" size={14} color={colors.slate400} />
-                  <Text style={styles.docMetaText}>{doc.slotDuration} min consultation</Text>
-                </View>
-                <View style={styles.docMeta}>
-                  <Ionicons name="cash-outline" size={14} color={colors.slate400} />
-                  <Text style={styles.docMetaText}>Rs. {doc.consultationFee}</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        ))}
-      </View>
-      </Animated.View>
-    </ScrollView>
+        </Animated.View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.slate50 },
-  content: { padding: 16, paddingBottom: 32 },
-  head: { marginBottom: 20 },
-  h2: { fontSize: 22, fontWeight: '700', color: colors.slate800, letterSpacing: -0.3 },
-  muted: { color: colors.slate500, marginTop: 4, fontSize: 14 },
-  gradCard: {
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 24,
-    overflow: 'hidden',
-    ...shadows.glow,
+  root: { flex: 1, backgroundColor: '#070a13', position: 'relative' },
+  flex: { flex: 1 },
+  glowTop: {
+    position: 'absolute',
+    top: -120,
+    left: -120,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(20, 184, 166, 0.08)',
+    opacity: 0.8,
   },
-  watermark: { position: 'absolute', right: -20, top: 8 },
-  gradInner: { gap: 20 },
-  badge: {
+  glowBottom: {
+    position: 'absolute',
+    bottom: -150,
+    right: -100,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: 'rgba(59, 130, 246, 0.06)',
+    opacity: 0.8,
+  },
+  content: { padding: 20, paddingBottom: 40 },
+  head: { marginBottom: 24, marginTop: 10 },
+  greeting: { fontSize: 24, fontWeight: '900', color: '#f8fafc', letterSpacing: -0.5 },
+  greetingHighlight: { color: colors.primary500 },
+  muted: { color: '#64748b', marginTop: 6, fontSize: 14, fontWeight: '500' },
+  
+  // Boarding Pass Ticket style
+  ticketContainer: {
+    marginBottom: 28,
+    borderRadius: 28,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+  },
+  gradCard: { padding: 24, position: 'relative', overflow: 'hidden' },
+  watermark: { position: 'absolute', right: -30, top: -20 },
+  ticketTop: { gap: 14 },
+  ticketBadgeRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 99,
     gap: 6,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    marginBottom: 12,
   },
-  badgeLight: { backgroundColor: '#fff' },
-  badgeDim: { backgroundColor: 'rgba(255,255,255,0.2)' },
-  badgeText: { color: '#fff', fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
-  tokenHuge: { fontSize: 36, fontWeight: '900', color: '#fff', letterSpacing: -1 },
-  drSub: { color: colors.primary100, fontSize: 15, marginTop: 8, fontWeight: '500' },
+  livePulse: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#fff',
+  },
+  liveText: { color: '#fff', fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
+  specialtyText: { color: 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: '800', letterSpacing: 1 },
+  ticketMainRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 6 },
+  tokenLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
+  tokenHuge: { fontSize: 44, fontWeight: '900', color: '#fff', letterSpacing: -1, marginTop: 2 },
+  statusBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 14,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  statusText: { color: '#fff', fontSize: 11, fontWeight: '900', letterSpacing: 0.5 },
+  
+  // Separation punch line
+  ticketSeparatorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: -24,
+    marginVertical: 18,
+    position: 'relative',
+  },
+  leftPunch: {
+    width: 16,
+    height: 24,
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+    backgroundColor: '#070a13',
+  },
+  rightPunch: {
+    width: 16,
+    height: 24,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
+    backgroundColor: '#070a13',
+  },
+  dashLine: {
+    flex: 1,
+    height: 1,
+    borderStyle: 'dashed',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    marginHorizontal: 10,
+  },
+  
+  ticketBottom: { gap: 16 },
   statRow: { flexDirection: 'row', gap: 12 },
   statBox: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 18,
+    padding: 14,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  statNum: { fontSize: 28, fontWeight: '700', color: '#fff' },
+  statNum: { fontSize: 26, fontWeight: '900', color: '#fff' },
   statLbl: {
-    color: colors.primary100,
+    color: 'rgba(255, 255, 255, 0.65)',
     fontSize: 10,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    fontWeight: '700',
     marginTop: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  gradFooter: {
-    marginTop: 20,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'flex-end',
-  },
-  cancelGrad: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
-  cancelGradText: { color: '#fff', fontWeight: '600', fontSize: 13 },
   arrivalRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingVertical: 10,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    gap: 8,
+  },
+  arrivalText: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  cancelGrad: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingVertical: 14,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
-    gap: 8,
+    alignItems: 'center',
     marginTop: 4,
   },
-  arrivalText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '700',
-  },
+  cancelGradPressed: { backgroundColor: 'rgba(255,255,255,0.22)', transform: [{ scale: 0.99 }] },
+  cancelGradText: { color: '#fff', fontWeight: '900', fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.5 },
+  
+  // Empty State Card
   emptyCard: {
-    backgroundColor: colors.white,
-    borderRadius: 24,
-    padding: 28,
-    alignItems: 'center',
-    marginBottom: 24,
-    ...shadows.soft,
+    borderRadius: 28,
+    overflow: 'hidden',
+    marginBottom: 28,
+    borderWidth: 1,
+    borderColor: '#1e293b',
   },
-  emptyIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.slate50,
+  emptyInner: { padding: 30, alignItems: 'center' },
+  emptyIconContainer: {
+    width: 68,
+    height: 68,
+    borderRadius: 22,
+    backgroundColor: 'rgba(20, 184, 166, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
   },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.slate800 },
+  emptyTitle: { fontSize: 18, fontWeight: '900', color: '#f8fafc' },
   emptySub: {
-    color: colors.slate500,
+    color: '#64748b',
     textAlign: 'center',
     marginTop: 8,
-    maxWidth: 280,
+    maxWidth: 290,
     lineHeight: 20,
+    fontSize: 13,
+    fontWeight: '500',
   },
-  cta: {
-    marginTop: 20,
+  ctaBtn: { marginTop: 22, width: '100%', maxWidth: 280 },
+  ctaBtnPressed: { transform: [{ scale: 0.98 }] },
+  ctaGrad: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: colors.primary600,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 14,
-  },
-  ctaText: { color: '#fff', fontWeight: '600', fontSize: 15 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: colors.slate800, marginBottom: 12 },
-  docGrid: { gap: 14 },
-  docCard: {
-    backgroundColor: colors.white,
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 15,
     borderRadius: 16,
-    padding: 18,
-    ...shadows.soft,
   },
+  ctaText: { color: '#fff', fontWeight: '800', fontSize: 14 },
+  
+  sectionTitle: { fontSize: 16, fontWeight: '900', color: '#94a3b8', marginBottom: 14, letterSpacing: 0.5, textTransform: 'uppercase' },
+  docGrid: { gap: 14 },
+  docCardContainer: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#1e293b',
+  },
+  docCard: { padding: 18 },
   docRow: { flexDirection: 'row', gap: 14 },
   docAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.secondary50,
+    width: 58,
+    height: 58,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#1e293b',
   },
-  docName: { fontSize: 17, fontWeight: '700', color: colors.slate800 },
-  docSpec: { color: colors.primary600, fontWeight: '600', fontSize: 13, marginTop: 2, marginBottom: 8 },
-  docMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
-  docMetaText: { fontSize: 12, color: colors.slate500, fontWeight: '500' },
+  docInfo: { flex: 1, justifyContent: 'center' },
+  docName: { fontSize: 16, fontWeight: '900', color: '#f8fafc' },
+  docSpec: { color: colors.primary500, fontWeight: '800', fontSize: 11, marginTop: 3, letterSpacing: 0.5 },
+  docMetaRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  docMetaBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0f172a',
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 8,
+    gap: 4,
+  },
+  docMetaText: { fontSize: 11, color: '#94a3b8', fontWeight: '700' },
 });
