@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Vibration } from 'react-native';
 import {
   cancelQueue,
   createPayment,
@@ -30,6 +30,7 @@ import { socketService } from '../api/socket';
 import {
   registerForPushNotificationsAsync,
   scheduleQueueNotification,
+  dismissActiveQueueNotification,
 } from '../utils/notifications';
 
 const PAYMENT_LABELS: Record<PaymentMethod, string> = {
@@ -129,6 +130,7 @@ export function PatientPortalProvider({ children }: { children: React.ReactNode 
       });
     } else {
       socketService.disconnect();
+      void dismissActiveQueueNotification();
     }
     return () => {
       socketService.disconnect();
@@ -185,6 +187,20 @@ export function PatientPortalProvider({ children }: { children: React.ReactNode 
       }
       
       if (newStatus) {
+        // Trigger/Update Foreground Persistent Notification
+        void scheduleQueueNotification(
+          newStatus.yourToken,
+          newStatus.peopleAhead,
+          newStatus.estimatedTime,
+          newStatus.serviceName,
+          newStatus.currentServing
+        );
+
+        // Sound/Vibration near turn: Vibrate when peopleAhead <= 3 (critical area)
+        if (newStatus.peopleAhead <= 3 && newStatus.peopleAhead >= 0) {
+          Vibration.vibrate([0, 500, 200, 500]);
+        }
+
         prevPeopleAheadRef.current = newStatus.peopleAhead;
       }
       setQueueStatus(newStatus);
@@ -192,6 +208,8 @@ export function PatientPortalProvider({ children }: { children: React.ReactNode 
       if ((e as { response?: { status?: number } }).response?.status === 404) {
         setQueueStatus(null);
         prevPeopleAheadRef.current = null;
+        // Dismiss foreground notification if queue does not exist
+        void dismissActiveQueueNotification();
       }
     }
   }, []);

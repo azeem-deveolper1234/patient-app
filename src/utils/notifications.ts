@@ -49,24 +49,65 @@ export async function registerForPushNotificationsAsync() {
 export async function scheduleQueueNotification(
   tokenNumber: number,
   peopleAhead: number,
-  estimatedTime: number
+  estimatedTime: number,
+  serviceName?: string,
+  currentServing?: number
 ) {
-  let title = 'Your Turn is Approaching! 🔔';
-  let body = `You are Token #${tokenNumber}. There are ${peopleAhead} patients ahead of you.`;
+  let title = `🔵 In Queue (Token #${tokenNumber})`;
+  let body = '';
 
   if (peopleAhead === 0) {
-    title = 'It is your turn now! 🏃‍♂️';
-    body = `Please proceed to the doctor's room. Your Token #${tokenNumber} is being called.`;
-  } else if (estimatedTime > 0) {
-    body += ` Estimated wait time: ${estimatedTime} mins.`;
+    title = `🏃‍♂️ It's Your Turn Now!`;
+    body = `Token #${tokenNumber} is being called. Please proceed to the doctor's room.`;
+  } else if (peopleAhead <= 2) {
+    title = `🔴 Turn Very Close! (${peopleAhead} ahead)`;
+    body = `Token #${tokenNumber} | Serving: #${currentServing || '-'}. Please be ready outside!`;
+  } else if (peopleAhead <= 5) {
+    title = `🟡 Turn Approaching (${peopleAhead} ahead)`;
+    body = `Token #${tokenNumber} | Serving: #${currentServing || '-'}`;
+  } else {
+    title = `🔵 Waiting in Queue (${peopleAhead} ahead)`;
+    body = `Token #${tokenNumber} | Serving: #${currentServing || '-'}`;
   }
 
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title,
-      body,
-      sound: true,
-    },
-    trigger: null, // trigger immediately
-  });
+  // Calculate Expected Arrival
+  if (peopleAhead > 0 && estimatedTime >= 0) {
+    const arrivalDate = new Date(Date.now() + estimatedTime * 60 * 1000);
+    const expectedArrival = arrivalDate.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+    body += `\nEst. Wait: ${estimatedTime}m | Expected Arrival: ${expectedArrival}`;
+  }
+
+  if (serviceName) {
+    body = `Dr. ${serviceName}\n${body}`;
+  }
+
+  try {
+    await Notifications.scheduleNotificationAsync({
+      identifier: 'active-queue-notification',
+      content: {
+        title,
+        body,
+        sound: true,
+        sticky: true, // Android persistent/ongoing notification
+        autoDismiss: false, // Android
+        color: peopleAhead === 0 ? '#16a34a' : peopleAhead <= 2 ? '#dc2626' : peopleAhead <= 5 ? '#ca8a04' : '#2563eb',
+      },
+      trigger: null, // trigger immediately
+    });
+  } catch (err) {
+    console.log('Error scheduling notification:', err);
+  }
 }
+
+export async function dismissActiveQueueNotification() {
+  try {
+    await Notifications.dismissNotificationAsync('active-queue-notification');
+  } catch (err) {
+    console.log('Error dismissing notification:', err);
+  }
+}
+

@@ -23,6 +23,31 @@ export default function HomeTab() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
 
+  // Expected Arrival Time
+  const getExpectedArrivalTime = (estimatedMinutes: number) => {
+    if (estimatedMinutes < 0) return 'N/A';
+    const arrival = new Date(Date.now() + estimatedMinutes * 60000);
+    return arrival.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
+  // Gradient based on Proximity
+  const getProximityGradient = (peopleAhead: number, status: string): [string, string] => {
+    if (status === 'serving' || peopleAhead === 0) {
+      return ['#16a34a', '#15803d']; // Green
+    }
+    if (peopleAhead <= 2) {
+      return ['#dc2626', '#b91c1c']; // Red
+    }
+    if (peopleAhead <= 5) {
+      return ['#ca8a04', '#a16207']; // Yellow
+    }
+    return [colors.primary600, colors.primary800]; // Blue
+  };
+
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -48,7 +73,7 @@ export default function HomeTab() {
 
       {queueStatus ? (
         <LinearGradient
-          colors={[colors.primary600, colors.primary800]}
+          colors={getProximityGradient(queueStatus.peopleAhead, queueStatus.status)}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradCard}
@@ -93,6 +118,14 @@ export default function HomeTab() {
                 <Text style={styles.statNum}>{queueStatus.estimatedTime}m</Text>
                 <Text style={styles.statLbl}>Wait Time</Text>
               </View>
+            </View>
+
+            {/* Expected Arrival time */}
+            <View style={styles.arrivalRow}>
+              <Ionicons name="time" size={18} color="rgba(255,255,255,0.8)" />
+              <Text style={styles.arrivalText}>
+                Expected Arrival: {getExpectedArrivalTime(queueStatus.estimatedTime)}
+              </Text>
             </View>
           </View>
           <View style={styles.gradFooter}>
@@ -218,6 +251,23 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.2)',
   },
   cancelGradText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+  arrivalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    gap: 8,
+    marginTop: 4,
+  },
+  arrivalText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
+  },
   emptyCard: {
     backgroundColor: colors.white,
     borderRadius: 24,
