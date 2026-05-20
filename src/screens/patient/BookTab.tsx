@@ -71,7 +71,7 @@ export default function BookTab() {
             </LinearGradient>
             <View>
               <Text style={styles.title}>Book Consultation</Text>
-              <Text style={styles.sub}>Naya token hasil karne ke liye details bharein</Text>
+              <Text style={styles.sub}>Fill in the details below to generate a new queue token</Text>
             </View>
           </View>
 
@@ -172,7 +172,7 @@ export default function BookTab() {
             style={styles.area}
             value={joinForm.notes}
             onChangeText={(notes) => setJoinForm((f) => ({ ...f, notes }))}
-            placeholder="Aapko kya takleef pesh aa rahi hai? (Optional)"
+            placeholder="Describe your symptoms or complaints here... (Optional)"
             placeholderTextColor="#475569"
             multiline
             numberOfLines={4}

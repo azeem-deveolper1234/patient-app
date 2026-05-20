@@ -114,6 +114,9 @@ export function PatientPortalProvider({ children }: { children: React.ReactNode 
   const pendingBookingRef = useRef<JoinFormState | null>(null);
   const gatewayTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const prevPeopleAheadRef = useRef<number | null>(null);
+  const prevCurrentServingRef = useRef<number | null>(null);
+  const prevEstimatedTimeRef = useRef<number | null>(null);
+  const prevServiceNameRef = useRef<string | undefined | null>(null);
 
   useEffect(() => {
     registerForPushNotificationsAsync();
@@ -176,9 +179,9 @@ export function PatientPortalProvider({ children }: { children: React.ReactNode 
         if (newStatus.peopleAhead <= 4 && newStatus.peopleAhead >= 0) {
           if (prevPeopleAheadRef.current > 4 || newStatus.peopleAhead === 0) {
             setInAppNotification({
-              title: newStatus.peopleAhead === 0 ? "It's your turn!" : "Queue Update",
+              title: newStatus.peopleAhead === 0 ? "🏃‍♂️ It's Your Turn Now!" : "Queue Update",
               body: newStatus.peopleAhead === 0 
-                ? "Please proceed to the doctor's room now."
+                ? `Token #${newStatus.yourToken} is being called. Please proceed to the doctor's room immediately.\n⚠️ Your turn has arrived! Please come quickly. We will wait for 5 minutes. If you do not arrive within 5 minutes, we will proceed to call the next patient.`
                 : `Only ${newStatus.peopleAhead} people ahead. Approx ${newStatus.estimatedTime} mins wait.`,
             });
             setTimeout(() => setInAppNotification(null), 8000);
@@ -187,27 +190,48 @@ export function PatientPortalProvider({ children }: { children: React.ReactNode 
       }
       
       if (newStatus) {
-        // Trigger/Update Foreground Persistent Notification
-        void scheduleQueueNotification(
-          newStatus.yourToken,
-          newStatus.peopleAhead,
-          newStatus.estimatedTime,
-          newStatus.serviceName,
-          newStatus.currentServing
-        );
+        const hasChanged =
+          prevPeopleAheadRef.current === null ||
+          prevPeopleAheadRef.current !== newStatus.peopleAhead ||
+          prevCurrentServingRef.current !== newStatus.currentServing ||
+          prevEstimatedTimeRef.current !== newStatus.estimatedTime ||
+          prevServiceNameRef.current !== newStatus.serviceName;
+
+        if (hasChanged) {
+          // Trigger/Update Foreground Notification
+          void scheduleQueueNotification(
+            newStatus.yourToken,
+            newStatus.peopleAhead,
+            newStatus.estimatedTime,
+            newStatus.serviceName,
+            newStatus.currentServing
+          );
+        }
 
         // Sound/Vibration near turn: Vibrate when peopleAhead <= 3 (critical area)
-        if (newStatus.peopleAhead <= 3 && newStatus.peopleAhead >= 0) {
+        // Only vibrate if peopleAhead has actually decreased
+        if (
+          newStatus.peopleAhead <= 3 &&
+          newStatus.peopleAhead >= 0 &&
+          prevPeopleAheadRef.current !== null &&
+          prevPeopleAheadRef.current > newStatus.peopleAhead
+        ) {
           Vibration.vibrate([0, 500, 200, 500]);
         }
 
         prevPeopleAheadRef.current = newStatus.peopleAhead;
+        prevCurrentServingRef.current = newStatus.currentServing;
+        prevEstimatedTimeRef.current = newStatus.estimatedTime;
+        prevServiceNameRef.current = newStatus.serviceName;
       }
       setQueueStatus(newStatus);
     } catch (e: unknown) {
       if ((e as { response?: { status?: number } }).response?.status === 404) {
         setQueueStatus(null);
         prevPeopleAheadRef.current = null;
+        prevCurrentServingRef.current = null;
+        prevEstimatedTimeRef.current = null;
+        prevServiceNameRef.current = null;
         // Dismiss foreground notification if queue does not exist
         void dismissActiveQueueNotification();
       }

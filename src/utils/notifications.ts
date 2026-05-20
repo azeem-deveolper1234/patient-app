@@ -56,9 +56,15 @@ export async function scheduleQueueNotification(
   let title = `🔵 In Queue (Token #${tokenNumber})`;
   let body = '';
 
+  const callTime = new Date().toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+
   if (peopleAhead === 0) {
     title = `🏃‍♂️ It's Your Turn Now!`;
-    body = `Token #${tokenNumber} is being called. Please proceed to the doctor's room.`;
+    body = `Token #${tokenNumber} is being called. Please proceed to the doctor's room immediately.\n⚠️ Your turn has arrived! Please come quickly. We will wait for 5 minutes. If you do not arrive within 5 minutes, we will proceed to call the next patient.\nCalled at: ${callTime}`;
   } else if (peopleAhead <= 2) {
     title = `🔴 Turn Very Close! (${peopleAhead} ahead)`;
     body = `Token #${tokenNumber} | Serving: #${currentServing || '-'}. Please be ready outside!`;
@@ -92,8 +98,8 @@ export async function scheduleQueueNotification(
         title,
         body,
         sound: true,
-        sticky: true, // Android persistent/ongoing notification
-        autoDismiss: false, // Android
+        sticky: false, // Make it swipeable
+        autoDismiss: true, // Auto-dismiss on click
         color: peopleAhead === 0 ? '#16a34a' : peopleAhead <= 2 ? '#dc2626' : peopleAhead <= 5 ? '#ca8a04' : '#2563eb',
       },
       trigger: null, // trigger immediately

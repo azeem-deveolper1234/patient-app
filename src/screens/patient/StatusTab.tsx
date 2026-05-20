@@ -34,7 +34,7 @@ export default function StatusTab() {
   const getProximityInfo = (peopleAhead: number, status: string) => {
     if (status === 'serving' || peopleAhead === 0) {
       return {
-        label: "Aapki baari aa gayi hai! Jaldi se andar tashreef le jayen. 🏃‍♂️",
+        label: "It's your turn now! Please proceed inside immediately. 🏃‍♂️",
         color: '#14b8a6',
         bg: 'rgba(20, 184, 166, 0.1)',
         border: 'rgba(20, 184, 166, 0.25)',
@@ -44,7 +44,7 @@ export default function StatusTab() {
     }
     if (peopleAhead <= 2) {
       return {
-        label: `🔴 Urgent Alert: Sirf ${peopleAhead} mareez baqi hain. Tayyar rahein!`,
+        label: `🔴 Urgent Alert: Only ${peopleAhead} patient(s) ahead. Please be ready!`,
         color: '#f43f5e',
         bg: 'rgba(244, 63, 94, 0.1)',
         border: 'rgba(244, 63, 94, 0.25)',
@@ -54,7 +54,7 @@ export default function StatusTab() {
     }
     if (peopleAhead <= 5) {
       return {
-        label: `🟡 Turn Approaching: ${peopleAhead} mareez baqi hain. Kareeb rahein.`,
+        label: `🟡 Turn Approaching: Only ${peopleAhead} patient(s) ahead. Stay close!`,
         color: '#fbbf24',
         bg: 'rgba(251, 191, 36, 0.1)',
         border: 'rgba(251, 191, 36, 0.25)',
@@ -63,7 +63,7 @@ export default function StatusTab() {
       };
     }
     return {
-      label: `🔵 Waiting in Queue: Aap se pehle ${peopleAhead} log majood hain.`,
+      label: `🔵 Waiting in Queue: There are ${peopleAhead} patient(s) ahead of you.`,
       color: '#3b82f6',
       bg: 'rgba(59, 130, 246, 0.1)',
       border: 'rgba(59, 130, 246, 0.25)',
@@ -106,7 +106,7 @@ export default function StatusTab() {
           <View style={styles.headRow}>
             <View>
               <Text style={styles.title}>Real-time Monitor</Text>
-              <Text style={styles.sub}>Aapki live queue updates yahan hain</Text>
+              <Text style={styles.sub}>Your live queue updates are here</Text>
             </View>
             <Pressable
               style={({ pressed }) => [
@@ -139,7 +139,7 @@ export default function StatusTab() {
               <View style={styles.grid2}>
                 <View style={styles.box}>
                   <Text style={styles.big}>{queueStatus.yourToken}</Text>
-                  <Text style={styles.cap}>Aapka Token</Text>
+                  <Text style={styles.cap}>Your Token</Text>
                 </View>
                 <View style={[styles.box, { backgroundColor: proximity.bg, borderColor: proximity.border }]}>
                   <Text style={[styles.big, { color: proximity.color }]}>
@@ -237,7 +237,7 @@ export default function StatusTab() {
               </View>
               <Text style={styles.emptyTitle}>No Active Token</Text>
               <Text style={styles.emptySub}>
-                Aap filhal kisi bhi doctor ki live queue me shamil nahi hain.
+                You are currently not in any doctor's live queue.
               </Text>
             </View>
           )}

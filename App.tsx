@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ActivityIndicator, View, LogBox } from 'react-native';
+import * as Notifications from 'expo-notifications';
 
 LogBox.ignoreLogs([
   'expo-notifications: Android Push notifications',
@@ -7,10 +8,12 @@ LogBox.ignoreLogs([
 ]);
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+
+export const navigationRef = createNavigationContainerRef<any>();
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import PatientPortalRoot from './src/screens/PatientPortalRoot';
@@ -67,11 +70,49 @@ function Root() {
 }
 
 export default function App() {
+  useEffect(() => {
+    // Listen to notification clicks while the app is running (foreground or background)
+    const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      // Explicitly dismiss the clicked notification from the status bar tray
+      const id = response.notification.request.identifier;
+      void Notifications.dismissNotificationAsync(id);
+
+      if (navigationRef.isReady()) {
+        try {
+          // Navigate to "Patient" stack and target "QueueStatus" tab (my appointments)
+          navigationRef.navigate('Patient', { screen: 'QueueStatus' });
+        } catch (err) {
+          console.log('Navigation from notification failed:', err);
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  const handleInitialNotification = async () => {
+    try {
+      // Check if the app was launched by clicking a notification (cold start)
+      const response = await Notifications.getLastNotificationResponseAsync();
+      if (response && navigationRef.isReady()) {
+        // Route the user directly to active appointments (QueueStatus)
+        navigationRef.navigate('Patient', { screen: 'QueueStatus' });
+      }
+    } catch (err) {
+      console.log('Error handling cold start notification:', err);
+    }
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <AuthProvider>
-          <NavigationContainer>
+          <NavigationContainer 
+            ref={navigationRef}
+            onReady={handleInitialNotification}
+          >
             <StatusBar style="dark" />
             <Root />
           </NavigationContainer>

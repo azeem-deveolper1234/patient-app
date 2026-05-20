@@ -108,11 +108,11 @@ export default function RegisterScreen({ navigation }: Props) {
     }
   };
 
+  const KeyboardView = Platform.OS === 'ios' ? KeyboardAvoidingView : View;
+  const keyboardProps = Platform.OS === 'ios' ? { behavior: 'padding' as const, style: styles.flex } : { style: styles.flex };
+
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <KeyboardView {...keyboardProps}>
       <LinearGradient
         colors={['#0a0f1d', '#111827']}
         style={styles.container}
@@ -124,9 +124,7 @@ export default function RegisterScreen({ navigation }: Props) {
         <ScrollView
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
-          removeClippedSubviews={Platform.OS === 'android'}
         >
           <Animated.View 
             style={[
@@ -317,7 +315,7 @@ export default function RegisterScreen({ navigation }: Props) {
           </Animated.View>
         </ScrollView>
       </LinearGradient>
-    </KeyboardAvoidingView>
+    </KeyboardView>
   );
 }
 
@@ -346,9 +344,10 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     padding: 24,
-    paddingVertical: 60,
+    paddingTop: 40,
+    paddingBottom: 60,
   },
   card: {
     backgroundColor: '#0f172a',
@@ -419,10 +418,6 @@ const styles = StyleSheet.create({
   inputRowActive: {
     borderColor: colors.primary500,
     backgroundColor: '#0e1424',
-    shadowColor: colors.primary500,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
   },
   inputIcon: { marginRight: 10 },
   input: { flex: 1, paddingVertical: 16, fontSize: 15, color: '#f1f5f9', fontWeight: '600' },

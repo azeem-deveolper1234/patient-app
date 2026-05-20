@@ -67,7 +67,7 @@ export default function ReportsTab() {
       >
         <View style={styles.head}>
           <Text style={styles.pageTitle}>Medical Reports</Text>
-          <Text style={styles.subTitle}>Aapki prescriptions aur checkup diagnostics history.</Text>
+          <Text style={styles.subTitle}>Your digital prescriptions and clinical checkup history.</Text>
         </View>
 
         {reports.length === 0 ? (
@@ -81,7 +81,7 @@ export default function ReportsTab() {
               </View>
               <Text style={styles.emptyTitle}>No reports yet</Text>
               <Text style={styles.emptySub}>
-                Doctor ke checkup complete karne ke baad aapki prescription aur diagnostic reports yahan milengi.
+                Your prescriptions and diagnostics reports will appear here once finalized by your consulting specialist.
               </Text>
             </LinearGradient>
           </Animated.View>
@@ -131,7 +131,7 @@ export default function ReportsTab() {
                       {/* Symptoms */}
                       {report.symptoms ? (
                         <View style={styles.block}>
-                          <Text style={styles.blockTitle}>Symptoms (Alaamaat)</Text>
+                          <Text style={styles.blockTitle}>Symptoms & Complaints</Text>
                           <View style={styles.symptomBox}>
                             <Text style={styles.symptomTxt}>{report.symptoms}</Text>
                           </View>
@@ -141,7 +141,7 @@ export default function ReportsTab() {
                       {/* Prescribed Medicines */}
                       {report.prescription && report.prescription.length > 0 ? (
                         <View style={styles.block}>
-                          <Text style={styles.blockTitle}>Prescribed Medicines (Adviyaat)</Text>
+                          <Text style={styles.blockTitle}>Prescribed Medications</Text>
                           <View style={{ gap: 8 }}>
                             {report.prescription.map((med, index) => (
                               <View key={index} style={styles.medRow}>
@@ -173,7 +173,7 @@ export default function ReportsTab() {
                       {/* Doctor Notes */}
                       {report.doctorNotes ? (
                         <View style={styles.block}>
-                          <Text style={styles.blockTitle}>Special Advice (Doctor Mashwara)</Text>
+                          <Text style={styles.blockTitle}>Special Advisory & Notes</Text>
                           <View style={styles.notesBox}>
                             <View style={styles.notesHeader}>
                               <Ionicons name="information-circle-outline" size={16} color={colors.yellow700} />

@@ -57,7 +57,7 @@ export default function HistoryTab() {
       >
         <View style={styles.head}>
           <Text style={styles.pageTitle}>Visit History</Text>
-          <Text style={styles.subTitle}>Aapki purani visit ki mukammal tafseelaat.</Text>
+          <Text style={styles.subTitle}>Complete details of your past clinical visits.</Text>
         </View>
 
         {history.length === 0 ? (
@@ -71,7 +71,7 @@ export default function HistoryTab() {
               </View>
               <Text style={styles.emptyTitle}>No past visits</Text>
               <Text style={styles.emptySub}>
-                Aapki completed aur cancelled appointments ki history yahan par zahir hogi.
+                Your completed and cancelled appointments history will be displayed here.
               </Text>
             </LinearGradient>
           </Animated.View>

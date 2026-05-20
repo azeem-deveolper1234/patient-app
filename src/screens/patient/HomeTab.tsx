@@ -99,7 +99,7 @@ export default function HomeTab() {
             <Text style={styles.greeting}>
               Salaam, <Text style={styles.greetingHighlight}>{firstName}!</Text>
             </Text>
-            <Text style={styles.muted}>Aapki sehat hamari sabse barhi tarjeeh hai.</Text>
+            <Text style={styles.muted}>Your health is our utmost priority.</Text>
           </View>
 
           {/* Active Queue Ticket (Boarding Pass design) */}
@@ -198,7 +198,7 @@ export default function HomeTab() {
                 </View>
                 <Text style={styles.emptyTitle}>No Active Appointment</Text>
                 <Text style={styles.emptySub}>
-                  Koi active token nahi mila. Doctor se consult karne ke liye naya appointment book karein.
+                  No active queue ticket found. Book a new appointment to consult with our specialized doctors.
                 </Text>
                 
                 <Pressable
