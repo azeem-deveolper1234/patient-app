@@ -75,6 +75,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       token: string;
       user: User;
     };
+    
+    if (u.role === 'admin') {
+      throw new Error('Admin login is not supported in the Patient App. Please use the Web Portal for Admin Dashboard.');
+    }
+
     await setStoredToken(newToken);
     await persistUser(u);
     setToken(newToken);
