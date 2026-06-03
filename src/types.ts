@@ -62,10 +62,15 @@ export type MedicalReportItem = {
   diagnosis: string;
   symptoms?: string;
   doctorNotes?: string;
+  bloodPressure?: string;
+  temperature?: string;
+  weight?: string;
   followUp?: boolean;
   nextAppointment?: string;
   createdAt: string;
-  doctor?: { name: string };
+  patient?: { name?: string; email?: string; phone?: string };
+  doctor?: { name?: string; specialization?: string; phone?: string };
+  queue?: { serviceName?: string; tokenNumber?: number; appointmentDate?: string };
   prescription?: Array<{
     medicineName: string;
     dosage: string;
