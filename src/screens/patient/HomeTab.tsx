@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -19,7 +20,9 @@ import type { PatientTabParamList } from '../../navigation/types';
 
 export default function HomeTab() {
   const navigation = useNavigation<MaterialTopTabNavigationProp<PatientTabParamList>>();
-  const { userName, queueStatus, doctors, handleCancelQueue, loading } = usePatientPortal();
+  const { userName, queueStatus, doctors, handleCancelQueue, loading, joinForm, setJoinForm } = usePatientPortal();
+  const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
+  const [showDoctorModal, setShowDoctorModal] = useState(false);
   const firstName = userName.split(' ')[0] || userName;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
@@ -231,7 +234,18 @@ export default function HomeTab() {
           {/* Specialists Grid */}
           <View style={styles.docGrid}>
             {doctors.map((doc, idx) => (
-              <Animated.View key={doc._id} style={styles.docCardContainer}>
+              <Pressable
+                key={doc._id}
+                style={({ pressed }) => [
+                  styles.docCardContainer,
+                  pressed && { opacity: 0.9, transform: [{ scale: 0.99 }] }
+                ]}
+                onPress={() => {
+                  Vibration.vibrate(30);
+                  setSelectedDoctor(doc);
+                  setShowDoctorModal(true);
+                }}
+              >
                 <LinearGradient
                   colors={['#111827', '#0b0f19']}
                   style={styles.docCard}
@@ -259,11 +273,166 @@ export default function HomeTab() {
                         </View>
                       </View>
                     </View>
+                    <Ionicons name="chevron-forward" size={18} color="#475569" style={{ alignSelf: 'center' }} />
                   </View>
                 </LinearGradient>
-              </Animated.View>
+              </Pressable>
             ))}
           </View>
+
+          {/* Premium Doctor Profile Bottom-Sheet Modal */}
+          <Modal
+            visible={showDoctorModal}
+            animationType="slide"
+            transparent
+            onRequestClose={() => {
+              setShowDoctorModal(false);
+              setSelectedDoctor(null);
+            }}
+          >
+            <Pressable
+              style={styles.modalBg}
+              onPress={() => {
+                Vibration.vibrate(30);
+                setShowDoctorModal(false);
+                setSelectedDoctor(null);
+              }}
+            >
+              <Pressable style={styles.modalSheet} onPress={(e) => e.stopPropagation()}>
+                {selectedDoctor && (
+                  <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
+                    {/* Header Banner Accent */}
+                    <LinearGradient
+                      colors={[colors.primary700, '#0f766e']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.modalBanner}
+                    >
+                      <View style={styles.modalBannerInner}>
+                        <Pressable
+                          onPress={() => {
+                            setShowDoctorModal(false);
+                            setSelectedDoctor(null);
+                          }}
+                          style={styles.modalCloseBtn}
+                        >
+                          <Ionicons name="close" size={20} color="#fff" />
+                        </Pressable>
+                      </View>
+                    </LinearGradient>
+
+                    {/* Avatar and Name */}
+                    <View style={styles.profileHeaderRow}>
+                      <LinearGradient
+                        colors={['#1e293b', '#0f172a']}
+                        style={styles.profileAvatar}
+                      >
+                        <Ionicons name={getSpecIcon(selectedDoctor.specialization)} size={38} color={colors.primary500} />
+                      </LinearGradient>
+                      <View style={styles.profileHeaderInfo}>
+                        <Text style={styles.profileName}>Dr. {selectedDoctor.name}</Text>
+                        <Text style={styles.profileSpec}>{selectedDoctor.specialization.toUpperCase()}</Text>
+                        <Text style={styles.profileDegree}>{selectedDoctor.degree || 'M.B.B.S.'}</Text>
+                      </View>
+                    </View>
+
+                    {/* Bio / About Section */}
+                    <View style={styles.modalSection}>
+                      <Text style={styles.modalSectionTitle}>About Consultant</Text>
+                      <Text style={styles.modalBio}>
+                        {selectedDoctor.about || `Dr. ${selectedDoctor.name} is a highly accomplished specialist offering premium clinical consultations and dedicated patient care.`}
+                      </Text>
+                    </View>
+
+                    {/* Details Grid */}
+                    <View style={styles.infoGrid}>
+                      <View style={styles.gridCell}>
+                        <Text style={styles.cellLabel}>EXPERIENCE</Text>
+                        <Text style={styles.cellValue}>{selectedDoctor.experience || 5} Years</Text>
+                      </View>
+                      <View style={styles.gridCell}>
+                        <Text style={styles.cellLabel}>SPECIALIZED FROM</Text>
+                        <Text style={styles.cellValue} numberOfLines={1}>{selectedDoctor.specializedFrom || 'City Medical University'}</Text>
+                      </View>
+                      <View style={styles.gridCell}>
+                        <Text style={styles.cellLabel}>CONSULTATION FEE</Text>
+                        <Text style={[styles.cellValue, { color: '#14b8a6' }]}>PKR {selectedDoctor.consultationFee || 1000}</Text>
+                      </View>
+                      <View style={styles.gridCell}>
+                        <Text style={styles.cellLabel}>SLOT DURATION</Text>
+                        <Text style={styles.cellValue}>{selectedDoctor.slotDuration || 15} Mins</Text>
+                      </View>
+                    </View>
+
+                    {/* Timings / Schedule */}
+                    <View style={styles.modalSection}>
+                      <Text style={styles.modalSectionTitle}>Consultation Schedule</Text>
+                      <View style={styles.scheduleList}>
+                        {selectedDoctor.schedule && selectedDoctor.schedule.length > 0 ? (
+                          selectedDoctor.schedule.map((item: any, idx: number) => (
+                            <View key={idx} style={styles.scheduleRow}>
+                              <Text style={styles.scheduleDay}>{item.day}</Text>
+                              <View style={[styles.timeBadge, item.isAvailable ? styles.timeBadgeActive : styles.timeBadgeOff]}>
+                                <Text style={[styles.timeBadgeText, item.isAvailable ? styles.timeActiveText : styles.timeOffText]}>
+                                  {item.isAvailable ? `${item.startTime} - ${item.endTime}` : 'Off Day'}
+                                </Text>
+                              </View>
+                            </View>
+                          ))
+                        ) : (
+                          <Text style={styles.noScheduleTxt}>No timings schedule defined for this doctor.</Text>
+                        )}
+                      </View>
+                    </View>
+
+                    {/* Booking CTA Button */}
+                    <Pressable
+                      onPress={() => {
+                        Vibration.vibrate([0, 60, 40, 60]);
+                        setJoinForm((f) => ({
+                          ...f,
+                          serviceName: selectedDoctor.name,
+                          totalAmount: selectedDoctor.consultationFee || 1000,
+                        }));
+                        setShowDoctorModal(false);
+                        setSelectedDoctor(null);
+                        navigation.jumpTo('Book');
+                      }}
+                      style={({ pressed }) => [
+                        styles.bookCtaPress,
+                        pressed && { transform: [{ scale: 0.98 }] }
+                      ]}
+                    >
+                      <LinearGradient
+                        colors={[colors.primary500, '#0d9488']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.bookCtaGrad}
+                      >
+                        <Ionicons name="calendar-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
+                        <Text style={styles.bookCtaText}>Book Appointment Now</Text>
+                      </LinearGradient>
+                    </Pressable>
+
+                    {/* Close Button */}
+                    <Pressable
+                      onPress={() => {
+                        Vibration.vibrate(30);
+                        setShowDoctorModal(false);
+                        setSelectedDoctor(null);
+                      }}
+                      style={({ pressed }) => [
+                        styles.closeModalLink,
+                        pressed && { opacity: 0.6 }
+                      ]}
+                    >
+                      <Text style={styles.closeModalLinkTxt}>Close Profile</Text>
+                    </Pressable>
+                  </ScrollView>
+                )}
+              </Pressable>
+            </Pressable>
+          </Modal>
 
         </Animated.View>
       </ScrollView>
@@ -503,4 +672,206 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   docMetaText: { fontSize: 11, color: '#94a3b8', fontWeight: '700' },
+  // Doctor profile modal styles
+  modalBg: {
+    flex: 1,
+    backgroundColor: 'rgba(7,10,19,0.7)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: '#0f172a',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+    maxHeight: '85%',
+    borderWidth: 1,
+    borderColor: '#1e293b',
+  },
+  modalBanner: {
+    height: 100,
+    marginHorizontal: -24,
+    borderTopLeftRadius: 31,
+    borderTopRightRadius: 31,
+    position: 'relative',
+  },
+  modalBannerInner: {
+    flex: 1,
+    position: 'relative',
+  },
+  modalCloseBtn: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 16,
+    marginTop: -40,
+    marginBottom: 20,
+    paddingHorizontal: 4,
+  },
+  profileAvatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 4,
+    borderColor: '#0f172a',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  profileHeaderInfo: {
+    flex: 1,
+    paddingBottom: 4,
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#f8fafc',
+    letterSpacing: -0.5,
+  },
+  profileSpec: {
+    color: colors.primary500,
+    fontWeight: '800',
+    fontSize: 11,
+    marginTop: 4,
+    letterSpacing: 0.5,
+  },
+  profileDegree: {
+    color: '#64748b',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  modalSection: {
+    marginTop: 18,
+  },
+  modalSectionTitle: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#64748b',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  modalBio: {
+    fontSize: 13,
+    color: '#94a3b8',
+    lineHeight: 20,
+    fontWeight: '500',
+  },
+  infoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 20,
+    padding: 16,
+    backgroundColor: '#070a13',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+  },
+  gridCell: {
+    width: '47%',
+    flexGrow: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    gap: 4,
+  },
+  cellLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#475569',
+    letterSpacing: 0.5,
+  },
+  cellValue: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#f1f5f9',
+  },
+  scheduleList: {
+    gap: 8,
+  },
+  scheduleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    backgroundColor: '#070a13',
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    borderRadius: 12,
+  },
+  scheduleDay: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#f1f5f9',
+  },
+  timeBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  timeBadgeActive: {
+    backgroundColor: 'rgba(20, 184, 166, 0.08)',
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+  },
+  timeBadgeOff: {
+    backgroundColor: 'rgba(71, 85, 105, 0.08)',
+    borderColor: 'rgba(71, 85, 105, 0.15)',
+  },
+  timeBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  timeActiveText: {
+    color: colors.primary500,
+  },
+  timeOffText: {
+    color: '#64748b',
+  },
+  noScheduleTxt: {
+    fontSize: 13,
+    color: '#475569',
+    fontStyle: 'italic',
+  },
+  bookCtaPress: {
+    marginTop: 28,
+  },
+  bookCtaGrad: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 16,
+  },
+  bookCtaText: {
+    color: '#fff',
+    fontWeight: '800',
+    fontSize: 14,
+  },
+  closeModalLink: {
+    marginTop: 16,
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  closeModalLinkTxt: {
+    color: '#64748b',
+    fontWeight: '800',
+    fontSize: 13,
+  },
 });

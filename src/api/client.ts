@@ -55,6 +55,7 @@ export const joinQueue = (data: {
   appointmentDate: string;
   priority: string;
   notes?: string;
+  paymentMethod?: string;
 }) => API.post('/queue/join', data);
 
 export const getQueueStatus = () => API.get('/queue/status');

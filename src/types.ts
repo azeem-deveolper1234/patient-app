@@ -13,6 +13,16 @@ export type Doctor = {
   consultationFee?: number;
   slotDuration?: number;
   maxPatientsPerDay?: number;
+  degree?: string;
+  experience?: number;
+  specializedFrom?: string;
+  about?: string;
+  schedule?: Array<{
+    day: string;
+    startTime: string;
+    endTime: string;
+    isAvailable: boolean;
+  }>;
 };
 
 export type QueueStatus = {

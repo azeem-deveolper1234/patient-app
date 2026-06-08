@@ -319,8 +319,16 @@ export default function BookTab() {
                     <Ionicons name="pulse" size={20} color={colors.primary500} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.docPickName}>Dr. {d.name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={styles.docPickName}>Dr. {d.name}</Text>
+                      <View style={styles.docDegreeBadge}>
+                        <Text style={styles.docDegreeBadgeText}>{d.degree || 'M.B.B.S.'}</Text>
+                      </View>
+                    </View>
                     <Text style={styles.docPickSpec}>{d.specialization.toUpperCase()}</Text>
+                    {d.experience ? (
+                      <Text style={styles.docPickExp}>★ {d.experience} Years Experience</Text>
+                    ) : null}
                   </View>
                   <View style={styles.docPickRight}>
                     <Text style={styles.docFeeVal}>PKR {d.consultationFee}</Text>
@@ -568,4 +576,23 @@ const styles = StyleSheet.create({
   docPickSpec: { fontSize: 11, color: colors.primary500, marginTop: 2, fontWeight: '800', letterSpacing: 0.3 },
   docPickRight: { flexDirection: 'row', alignItems: 'center' },
   docFeeVal: { fontSize: 13, fontWeight: '900', color: '#f8fafc' },
+  docDegreeBadge: {
+    backgroundColor: 'rgba(20, 184, 166, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 184, 166, 0.2)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  docDegreeBadgeText: {
+    fontSize: 9,
+    fontWeight: '850',
+    color: colors.primary500,
+  },
+  docPickExp: {
+    fontSize: 10,
+    color: '#64748b',
+    fontWeight: '600',
+    marginTop: 3,
+  },
 });

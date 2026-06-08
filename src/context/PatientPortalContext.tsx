@@ -278,6 +278,7 @@ export function PatientPortalProvider({ children }: { children: React.ReactNode 
         priority: form.priority,
         appointmentDate: form.appointmentDate,
         notes: form.notes,
+        paymentMethod: form.paymentMethod,
       });
 
       const data = queueRes.data as {
